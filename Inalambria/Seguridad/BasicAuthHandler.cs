@@ -24,7 +24,7 @@ namespace Inalambria.Seguridad
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             if (!Request.Headers.ContainsKey("Authorization"))
-                return AuthenticateResult.Fail("El header no contiene una la 'Authorization' ");
+                return AuthenticateResult.Fail("El header no contiene una la Authorization ");
 
             bool result = false;
             try

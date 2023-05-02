@@ -12,7 +12,6 @@ namespace Inalambria.Controllers
     public class DominoController : ControllerBase
     {
         private readonly IDominoService _dominoService;
-
         public DominoController(IDominoService dominoService)
         {
             _dominoService = dominoService;
@@ -28,33 +27,18 @@ namespace Inalambria.Controllers
         public ActionResult<IEnumerable<ModeloFicha>> PostModeloFichas(List<ModeloFicha> lista)
         {
             if (lista.Count > 6 || lista.Count < 2)
-                return BadRequest();
-
-                    
-
-
-
-
-
-
-
-
-
-
-
+            {
+                ModelState.AddModelError("ValidacionTamañoLista", "El arreglo solo permite maximo 6 y minimo 2 fichas.");
+                return BadRequest(ModelState);
+            }
             List<ModeloFicha> Result = new List<ModeloFicha>();
             ModeloFicha ficha;
             ficha = lista[0];
             Result.Add(ficha);
             lista.Remove(ficha);
 
-
-
-
-            //buscar una ficha dentro de lista que sea igual a result[0].posicion1 o result.last.posicion2}
             while (lista.Count > 0)
             {
-
                 foreach (ModeloFicha item in lista)
                 {
                     if (item.posicion1 == Result[0].posicion1)
@@ -89,16 +73,24 @@ namespace Inalambria.Controllers
                         lista.Remove(item);
                         break;
                     }
+
+                    //if (item == lista.Last())
+                    //{
+                    //    ModelState.AddModelError("ValidacionNoSePuede", "No se pudo crear la cadena con los parametros enviados.");
+                    //    return BadRequest(ModelState);
+                    //}
                 }
             }
 
 
             if (Result[0].posicion1 == Result.Last().posicion2)
-                return Result;
+                return Ok(Result);
+            else
+            {
+                ModelState.AddModelError("ValidacionPuntas", "Los números primero y último no son los mismos.");
+                return BadRequest(ModelState);
+            }
 
-
-
-            return Result;
         }
     }
 }
