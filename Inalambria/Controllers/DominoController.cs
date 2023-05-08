@@ -23,74 +23,35 @@ namespace Inalambria.Controllers
             return _dominoService.Get();
         }
 
+
         [HttpPost]
         public ActionResult<IEnumerable<ModeloFicha>> PostModeloFichas(List<ModeloFicha> lista)
         {
+            //Validar si lista tiene un maximo y minimo
             if (lista.Count > 6 || lista.Count < 2)
             {
                 ModelState.AddModelError("ValidacionTamañoLista", "El arreglo solo permite maximo 6 y minimo 2 fichas.");
                 return BadRequest(ModelState);
             }
-            List<ModeloFicha> Result = new List<ModeloFicha>();
-            ModeloFicha ficha;
-            ficha = lista[0];
-            Result.Add(ficha);
-            lista.Remove(ficha);
 
-            while (lista.Count > 0)
+            ///Comprueba si se puede realizar la cadena de acuerdo a las fichas pares
+            string validacion = _dominoService.ComprobarQueSePuedeRealizarCadena(lista);
+            if (validacion.Length > 1)
             {
-                foreach (ModeloFicha item in lista)
-                {
-                    if (item.posicion1 == Result[0].posicion1)
-                    {
-                        Result = Result.Prepend(new ModeloFicha
-                        {
-                            posicion1 = item.posicion2,
-                            posicion2 = item.posicion1
-                        }).ToList();
-                        lista.Remove(item);
-                        break;
-                    }
-                    if (item.posicion2 == Result[0].posicion1)
-                    {
-                        Result = Result.Prepend(item).ToList();
-                        lista.Remove(item);
-                        break;
-                    }
-                    else if (item.posicion1 == Result.Last().posicion2)
-                    {
-                        Result.Add(item);
-                        lista.Remove(item);
-                        break;
-                    }
-                    if (item.posicion2 == Result.Last().posicion2)
-                    {
-                        Result.Add(new ModeloFicha
-                        {
-                            posicion1 = item.posicion2,
-                            posicion2 = item.posicion1
-                        });
-                        lista.Remove(item);
-                        break;
-                    }
-
-                    //if (item == lista.Last())
-                    //{
-                    //    ModelState.AddModelError("ValidacionNoSePuede", "No se pudo crear la cadena con los parametros enviados.");
-                    //    return BadRequest(ModelState);
-                    //}
-                }
+                ModelState.AddModelError("ValidacionPoderRealizar", validacion);
+                return BadRequest(ModelState);
             }
 
-
+            ///Comprueba que las fichas si tengan los lados iguales
+            List<ModeloFicha> Result = _dominoService.ExaminarLista(lista);
             if (Result[0].posicion1 == Result.Last().posicion2)
                 return Ok(Result);
-            else
+            else if (Result[0].posicion1 != Result.Last().posicion2)
             {
                 ModelState.AddModelError("ValidacionPuntas", "Los números primero y último no son los mismos.");
                 return BadRequest(ModelState);
             }
-
+            return BadRequest();
         }
     }
 }
